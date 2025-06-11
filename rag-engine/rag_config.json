@@ -1,0 +1,23 @@
+{
+  "system": {
+    "role": "hybrid",
+    "model_name": "iMac",
+    "cpu_cores": 8,
+    "memory_gb": 64.0
+  },
+  "ollama": {
+    "models": [
+      "llama3.2:3b",
+      "llama3.1:8b"
+    ],
+    "concurrent_requests": 2,
+    "context_length": 4096
+  },
+  "rag": {
+    "search_k": 3,
+    "max_context_length": 2000,
+    "temperature": 0.5
+  },
+  "network": {},
+  "storage": {}
+}

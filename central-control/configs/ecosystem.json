@@ -1,0 +1,87 @@
+{
+  "devices": {
+    "HOME_iMac_i7_64GB": {
+      "role": "central_controller",
+      "services": [
+        "orchestrator",
+        "dashboard",
+        "data_manager",
+        "dev_server"
+      ],
+      "status": "current",
+      "ip": "192.168.219.103",
+      "ports": {
+        "dashboard": 8080,
+        "api": 8000,
+        "monitoring": 3000
+      }
+    },
+    "HOME_MacMini_M2Pro_32GB": {
+      "role": "embedding_server",
+      "services": [
+        "embedding_generator",
+        "batch_processor",
+        "model_trainer"
+      ],
+      "status": "pending",
+      "ip": "192.168.219.104",
+      "ports": {
+        "embedding_api": 8001,
+        "training": 8002
+      }
+    },
+    "OFFICE_iMac_i7_40GB": {
+      "role": "ui_server",
+      "services": [
+        "search_ui",
+        "monitoring_dashboard",
+        "collaboration"
+      ],
+      "status": "pending",
+      "ip": "office.desinsight.local",
+      "ports": {
+        "ui": 8082,
+        "monitoring": 3001
+      }
+    },
+    "OFFICE_MacStudio_M4Pro_64GB": {
+      "role": "inference_server",
+      "services": [
+        "high_performance_inference",
+        "api_gateway",
+        "analysis"
+      ],
+      "status": "pending",
+      "ip": "studio.desinsight.local",
+      "ports": {
+        "inference": 8003,
+        "api": 8004
+      }
+    },
+    "MOBILE_iPhone_MacBook": {
+      "role": "client",
+      "services": [
+        "mobile_app",
+        "field_data_collection"
+      ],
+      "status": "pending"
+    }
+  },
+  "nas_systems": {
+    "SnapCodex_NAS": {
+      "purpose": "project_data",
+      "ip": "192.168.219.175",
+      "priority": "realtime_processing"
+    },
+    "Desinsight2_NAS": {
+      "purpose": "central_storage",
+      "ip": "nas2.desinsight.local",
+      "priority": "high_availability"
+    },
+    "Office_Desinsight_NAS": {
+      "purpose": "backup_storage",
+      "ip": "desinsight.synology.me:5001",
+      "priority": "disaster_recovery"
+    }
+  }
+}

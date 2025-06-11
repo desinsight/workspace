@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Desinsight 분산 RAG 생태계 대시보드</title>
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; 
+               background: #1a1a1a; color: #fff; margin: 0; padding: 20px; }
+        .container { max-width: 1400px; margin: 0 auto; }
+        .header { text-align: center; margin-bottom: 30px; }
+        .ecosystem-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; }
+        .device-card { background: #2a2a2a; border-radius: 12px; padding: 20px; border-left: 4px solid #00a8ff; }
+        .device-card.active { border-left-color: #00ff88; }
+        .device-card.pending { border-left-color: #ffa500; }
+        .device-name { font-size: 18px; font-weight: bold; margin-bottom: 10px; }
+        .device-role { color: #888; margin-bottom: 15px; }
+        .service-list { list-style: none; padding: 0; }
+        .service-list li { padding: 5px 0; color: #ccc; }
+        .status-active { color: #00ff88; }
+        .status-pending { color: #ffa500; }
+        .nas-section { margin-top: 40px; }
+        .nas-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 15px; }
+        .nas-card { background: #1e3a8a; border-radius: 8px; padding: 15px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🏗 Desinsight 분산 RAG 생태계</h1>
+            <p>5-Device + 3-NAS 아키텍처 중앙 제어 대시보드</p>
+        </div>
+        
+        <div class="ecosystem-grid">
+            <div class="device-card active">
+                <div class="device-name">🏠 HOME iMac i7 64GB</div>
+                <div class="device-role">중앙 제어 서버</div>
+                <div class="status-active">● 활성 상태</div>
+                <ul class="service-list">
+                    <li>🎼 RAG 오케스트레이터</li>
+                    <li>🌐 웹 대시보드</li>
+                    <li>📊 데이터 관리자</li>
+                    <li>🔧 개발 서버</li>
+                </ul>
+            </div>
+            
+            <div class="device-card pending">
+                <div class="device-name">🏠 Mac Mini M2 Pro 32GB</div>
+                <div class="device-role">임베딩 서버</div>
+                <div class="status-pending">● 설정 대기 중</div>
+                <ul class="service-list">
+                    <li>⚡ 임베딩 생성기</li>
+                    <li>🔄 배치 프로세서</li>
+                    <li>🧠 모델 트레이너</li>
+                </ul>
+            </div>
+            
+            <div class="device-card pending">
+                <div class="device-name">🏢 Office iMac i7 40GB</div>
+                <div class="device-role">UI 서버</div>
+                <div class="status-pending">● 설정 대기 중</div>
+                <ul class="service-list">
+                    <li>🔍 검색 UI</li>
+                    <li>📊 모니터링 대시보드</li>
+                    <li>👥 협업 기능</li>
+                </ul>
+            </div>
+            
+            <div class="device-card pending">
+                <div class="device-name">🏢 Mac Studio M4 Pro 64GB</div>
+                <div class="device-role">추론 서버</div>
+                <div class="status-pending">● 설정 대기 중</div>
+                <ul class="service-list">
+                    <li>🚀 고성능 추론</li>
+                    <li>🌐 API 게이트웨이</li>
+                    <li>🧮 분석 엔진</li>
+                </ul>
+            </div>
+            
+            <div class="device-card pending">
+                <div class="device-name">📱 Mobile 클라이언트</div>
+                <div class="device-role">사용자 인터페이스</div>
+                <div class="status-pending">● 설정 대기 중</div>
+                <ul class="service-list">
+                    <li>📱 모바일 앱</li>
+                    <li>📸 현장 데이터 수집</li>
+                    <li>🌐 외부 접근</li>
+                </ul>
+            </div>
+        </div>
+        
+        <div class="nas-section">
+            <h2>🗄️ 3-Tier NAS 아키텍처</h2>
+            <div class="nas-grid">
+                <div class="nas-card">
+                    <h3>SnapCodex 전용 NAS</h3>
+                    <p>192.168.219.175</p>
+                    <p>실시간 프로젝트 데이터 처리</p>
+                </div>
+                <div class="nas-card">
+                    <h3>Desinsight2 메인 NAS</h3>
+                    <p>중앙 저장소</p>
+                    <p>고가용성 데이터 허브</p>
+                </div>
+                <div class="nas-card">
+                    <h3>Office 백업 NAS</h3>
+                    <p>desinsight.synology.me:5001</p>
+                    <p>재해 복구 백업</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // 실시간 상태 업데이트 (향후 구현)
+        console.log('🎯 Desinsight 분산 RAG 생태계 대시보드 로드됨');
+    </script>
+</body>
+</html>

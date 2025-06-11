@@ -1,0 +1,41 @@
+{
+  "device_info": {
+    "name": "HOME-iMac-i7-64GB",
+    "role": "central_controller",
+    "cpu": "i386",
+    "memory_gb": 64,
+    "priority": "coordination"
+  },
+  "services": {
+    "rag_orchestrator": {
+      "port": 8000,
+      "workers": 4
+    },
+    "web_dashboard": {
+      "port": 8080,
+      "theme": "dark"
+    },
+    "data_manager": {
+      "port": 8005,
+      "sync_interval": 300
+    },
+    "monitoring_hub": {
+      "port": 3000,
+      "alert_threshold": 80
+    }
+  },
+  "performance": {
+    "max_workers": 8,
+    "memory_allocation_gb": 45,
+    "cpu_threads": 16,
+    "concurrent_connections": 100
+  },
+  "network": {
+    "internal_ip": "192.168.219.103",
+    "external_access": true,
+    "ssl_enabled": false,
+    "cors_origins": [
+      "*"
+    ]
+  }
+}

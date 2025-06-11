@@ -1,0 +1,320 @@
+version: '3.8'
+
+# Desinsight 분산 RAG 생태계 Docker Compose
+# 5-Device + 3-NAS 아키텍처 통합 오케스트레이션
+
+services:
+  # ==========================================
+  # Central Controller (HOME iMac i7 64GB)
+  # ==========================================
+  central-controller:
+    build:
+      context: .
+      target: central-controller
+    container_name: desinsight-central-controller
+    hostname: central-controller
+    ports:
+      - "8000:8000"  # 웹 대시보드
+      - "8001:8001"  # API 서버
+      - "3000:3000"  # 모니터링
+    volumes:
+      - workspace_data:/workspace/data
+      - nas_config:/workspace/nas-config
+      - central_logs:/workspace/logs
+      - ./central-control:/workspace/central-control:ro
+    environment:
+      - DEVICE_TYPE=home_imac_i7_64gb
+      - DEVICE_ROLE=central_controller
+      - NAS_SNAPCODEX_HOST=192.168.219.175
+      - NAS_DESINSIGHT2_HOST=nas2.desinsight.local
+      - NAS_OFFICE_HOST=desinsight.synology.me:5001
+      - POSTGRES_URL=postgresql://snapcodex:secure_password123@postgres:5432/snapcodex
+      - REDIS_URL=redis://redis:6379/0
+      - CHROMADB_URL=http://chromadb:8000
+    depends_on:
+      - postgres
+      - redis
+      - chromadb
+    networks:
+      - desinsight-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # ==========================================
+  # Embedding Server (Mac Mini M2 Pro 32GB)
+  # ==========================================
+  embedding-server:
+    build:
+      context: .
+      target: embedding-server
+    container_name: desinsight-embedding-server
+    hostname: embedding-server
+    ports:
+      - "8002:8002"  # 임베딩 API
+      - "8006:8006"  # 배치 프로세서
+    volumes:
+      - embedding_data:/workspace/embeddings
+      - model_cache:/workspace/models
+      - embedding_logs:/workspace/logs
+    environment:
+      - DEVICE_TYPE=mac_mini_m2pro_32gb
+      - DEVICE_ROLE=embedding_server
+      - BATCH_SIZE=32
+      - MODEL_CACHE_SIZE=4GB
+      - CHROMADB_URL=http://chromadb:8000
+      - CENTRAL_CONTROLLER_URL=http://central-controller:8000
+    depends_on:
+      - chromadb
+      - central-controller
+    networks:
+      - desinsight-network
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 24G
+        reservations:
+          memory: 16G
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8002/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # ==========================================
+  # Inference Server (Office Mac Studio M4 Pro)
+  # ==========================================
+  inference-server:
+    build:
+      context: .
+      target: inference-server
+    container_name: desinsight-inference-server
+    hostname: inference-server
+    ports:
+      - "8003:8003"  # 추론 API
+      - "8007:8007"  # 모델 서버
+    volumes:
+      - inference_cache:/workspace/inference
+      - model_cache:/workspace/models:ro
+      - inference_logs:/workspace/logs
+    environment:
+      - DEVICE_TYPE=mac_studio_m4pro_64gb
+      - DEVICE_ROLE=inference_server
+      - MODEL_SIZE=7B
+      - CONCURRENT_REQUESTS=20
+      - OLLAMA_HOST=0.0.0.0
+      - CENTRAL_CONTROLLER_URL=http://central-controller:8000
+    depends_on:
+      - central-controller
+    networks:
+      - desinsight-network
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 48G
+        reservations:
+          memory: 32G
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8003/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # ==========================================
+  # UI Server (Office iMac i7 40GB)
+  # ==========================================
+  ui-server:
+    build:
+      context: .
+      target: ui-server
+    container_name: desinsight-ui-server
+    hostname: ui-server
+    ports:
+      - "8004:8004"  # 웹 UI
+      - "8008:8008"  # API Gateway
+    volumes:
+      - ui_assets:/workspace/ui
+      - ui_logs:/workspace/logs
+    environment:
+      - DEVICE_TYPE=office_imac_i7_40gb
+      - DEVICE_ROLE=ui_server
+      - CENTRAL_CONTROLLER_URL=http://central-controller:8000
+      - INFERENCE_SERVER_URL=http://inference-server:8003
+      - EMBEDDING_SERVER_URL=http://embedding-server:8002
+    depends_on:
+      - central-controller
+      - inference-server
+      - embedding-server
+    networks:
+      - desinsight-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8004/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # ==========================================
+  # PostgreSQL Database
+  # ==========================================
+  postgres:
+    image: postgres:15-alpine
+    container_name: desinsight-postgres
+    hostname: postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./docker/postgres/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    environment:
+      - POSTGRES_DB=snapcodex
+      - POSTGRES_USER=snapcodex
+      - POSTGRES_PASSWORD=secure_password123
+      - POSTGRES_INITDB_ARGS=--encoding=UTF-8 --lc-collate=C --lc-ctype=C
+    networks:
+      - desinsight-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U snapcodex -d snapcodex"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+
+  # ==========================================
+  # Redis Cache
+  # ==========================================
+  redis:
+    image: redis:7-alpine
+    container_name: desinsight-redis
+    hostname: redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+      - ./docker/redis/redis.conf:/usr/local/etc/redis/redis.conf:ro
+    command: redis-server /usr/local/etc/redis/redis.conf
+    networks:
+      - desinsight-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+
+  # ==========================================
+  # ChromaDB Vector Database
+  # ==========================================
+  chromadb:
+    image: chromadb/chroma:latest
+    container_name: desinsight-chromadb
+    hostname: chromadb
+    ports:
+      - "8005:8000"
+    volumes:
+      - chroma_data:/chroma/chroma
+    environment:
+      - CHROMA_SERVER_HOST=0.0.0.0
+      - CHROMA_SERVER_HTTP_PORT=8000
+      - CHROMA_SERVER_GRPC_PORT=50051
+      - ALLOW_RESET=TRUE
+    networks:
+      - desinsight-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/api/v1/heartbeat"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+
+  # ==========================================
+  # Monitoring & Metrics (Optional)
+  # ==========================================
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: desinsight-prometheus
+    hostname: prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./docker/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus_data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/etc/prometheus/console_libraries'
+      - '--web.console.templates=/etc/prometheus/consoles'
+      - '--storage.tsdb.retention.time=200h'
+      - '--web.enable-lifecycle'
+    networks:
+      - desinsight-network
+    restart: unless-stopped
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: desinsight-grafana
+    hostname: grafana
+    ports:
+      - "3001:3000"
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./docker/grafana/provisioning:/etc/grafana/provisioning:ro
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=desinsight2024
+      - GF_USERS_ALLOW_SIGN_UP=false
+    depends_on:
+      - prometheus
+    networks:
+      - desinsight-network
+    restart: unless-stopped
+
+# ==========================================
+# Volumes
+# ==========================================
+volumes:
+  workspace_data:
+    driver: local
+  nas_config:
+    driver: local
+  embedding_data:
+    driver: local
+  model_cache:
+    driver: local
+  inference_cache:
+    driver: local
+  ui_assets:
+    driver: local
+  central_logs:
+    driver: local
+  embedding_logs:
+    driver: local
+  inference_logs:
+    driver: local
+  ui_logs:
+    driver: local
+  postgres_data:
+    driver: local
+  redis_data:
+    driver: local
+  chroma_data:
+    driver: local
+  prometheus_data:
+    driver: local
+  grafana_data:
+    driver: local
+
+# ==========================================
+# Networks
+# ==========================================
+networks:
+  desinsight-network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16 

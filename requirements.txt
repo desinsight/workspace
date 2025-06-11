@@ -1,0 +1,160 @@
+# Desinsight Workspace Docker Requirements
+# Core Python dependencies for 5-Device + 3-NAS RAG ecosystem
+
+# ============================
+# Core Framework Dependencies
+# ============================
+fastapi==0.104.1
+uvicorn[standard]==0.24.0
+pydantic==2.11.5
+requests==2.31.0
+aiohttp==3.9.1
+websockets==12.0
+
+# ============================
+# AI/ML Core Libraries
+# ============================
+torch==2.2.2
+torchvision==0.17.2
+transformers==4.52.4
+sentence-transformers==2.2.2
+huggingface-hub==0.33.0
+
+# ============================
+# Vector Database & Embeddings
+# ============================
+chromadb==0.4.18
+numpy==1.25.2
+scipy==1.13.1
+
+# ============================
+# RAG & Language Models
+# ============================
+langchain==0.0.335
+langsmith==0.0.92
+openai==1.3.5
+
+# ============================
+# Database & Caching
+# ============================
+sqlalchemy==2.0.23
+psycopg2-binary==2.9.7
+redis==5.0.1
+
+# ============================
+# Data Processing
+# ============================
+pandas==2.1.4
+python-dotenv==1.0.0
+python-multipart==0.0.6
+pyyaml==6.0.2
+
+# ============================
+# Document Processing
+# ============================
+pdfplumber==0.10.3
+pdfminer.six==20221105
+pypdfium2==4.30.1
+python-docx==1.1.0
+openpyxl==3.1.2
+
+# ============================
+# Web & UI Frameworks
+# ============================
+streamlit==1.28.1
+gradio==4.8.0
+flask==3.0.0
+jinja2==3.1.6
+
+# ============================
+# Jupyter & Development
+# ============================
+jupyter==1.0.0
+notebook==7.0.6
+ipykernel==6.26.0
+jupyterlab==4.0.8
+
+# ============================
+# API Integrations
+# ============================
+notion-client==2.2.1
+kubernetes==30.1.0
+
+# ============================
+# Monitoring & Logging
+# ============================
+prometheus-client==0.19.0
+coloredlogs==15.0.1
+rich==14.0.0
+
+# ============================
+# Utilities & Tools
+# ============================
+click==8.1.8
+typer==0.16.0
+tqdm==4.67.1
+python-dateutil==2.9.0.post0
+packaging==25.0
+
+# ============================
+# Security & Authentication
+# ============================
+bcrypt==4.3.0
+cryptography==45.0.4
+PyNaCl==1.5.0
+
+# ============================
+# Network & SSH
+# ============================
+paramiko==3.4.0
+httpx==0.28.1
+
+# ============================
+# Optional: Development Tools
+# ============================
+black==23.11.0
+flake8==6.1.0
+mypy==1.7.1
+pytest==7.4.3
+
+# ============================
+# Docker-specific utilities
+# ============================
+docker==6.1.3
+
+# ============================
+# Environment Detection
+# ============================
+psutil==5.9.6
+
+# ============================
+# File System & Storage
+# ============================
+watchfiles==1.0.5
+fsspec==2024.12.0
+
+# ============================
+# Async & Concurrency
+# ============================
+aiofiles==23.2.1
+anyio==3.7.1
+
+# ============================
+# Network Communication
+# ============================
+grpcio==1.73.0
+protobuf==5.29.5
+
+# ============================
+# Optional: GPU Support
+# ============================
+# torch-audio==2.0.2
+# torchaudio==2.0.2
+
+# ============================
+# Version Constraints
+# ============================
+# Keep these versions compatible with each other
+setuptools>=65.0.0
+wheel>=0.38.0
+pip>=23.0.0 

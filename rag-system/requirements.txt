@@ -1,0 +1,60 @@
+# RAG 시스템 관련 의존성
+aiohttp==3.9.1
+aiofiles==23.2.1
+asyncio==3.4.3
+
+# 임베딩 모델
+sentence-transformers==2.2.2
+transformers==4.36.2
+
+# 벡터 데이터베이스
+chromadb==0.4.18
+faiss-cpu==1.7.4
+
+# Google Cloud
+google-cloud-firestore==2.13.1
+google-cloud-storage==2.10.0
+google-cloud-pubsub==2.18.4
+google-auth==2.25.2
+
+# 데이터 처리
+pandas==2.1.4
+numpy==1.25.2
+openpyxl==3.1.2
+
+# 파일 처리
+PyPDF2==3.0.1
+python-docx==1.1.0
+ezdxf==1.1.4
+Pillow==10.1.0
+
+# OCR (한국어 지원)
+easyocr==1.7.0
+pytesseract==0.3.10
+
+# 텍스트 처리
+spacy==3.7.2
+konlpy==0.6.0
+
+# Ollama 클라이언트
+ollama==0.1.7
+requests==2.31.0
+
+# 로깅 및 모니터링
+loguru==0.7.2
+prometheus-client==0.19.0
+
+# 스케줄링
+schedule==1.2.0
+celery==5.3.4
+
+# 환경 설정
+python-dotenv==1.0.0
+pydantic==2.5.1
+pydantic-settings==2.1.0
+
+# 개발 도구
+black==23.11.0
+flake8==6.1.0
+pytest==7.4.3
+pytest-asyncio==0.21.1
