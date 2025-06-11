@@ -1,1 +1,54 @@
+# Core dependencies
+fastapi==0.104.1
+uvicorn[standard]==0.24.0
+python-dotenv==1.0.0
+
+# Notion API
 notion-client==2.2.1
+
+# Database
+psycopg2-binary==2.9.7
+sqlalchemy==2.0.23
+
+# PDF processing
+reportlab==4.0.7
+pdfplumber==0.10.3
+tabula-py==2.8.2
+
+# CAD/Drawing processing
+ezdxf==1.1.4
+Pillow==10.1.0
+
+# AI and embeddings
+openai==1.3.5
+chromadb==0.4.18
+langchain==0.0.335
+sentence-transformers==2.2.2
+
+# File processing
+python-multipart==0.0.6
+openpyxl==3.1.2
+
+# HTTP requests
+requests==2.31.0
+aiohttp==3.9.1
+
+# Data processing
+pandas==2.1.4
+numpy==1.25.2
+
+# Development tools
+pytest==7.4.3
+black==23.11.0
+flake8==6.1.0
+mypy==1.7.1
+
+# Synology/NAS integration
+paramiko==3.4.0  # SSH 연결
+# rsync is pre-installed on macOS
+
+# Docker support
+docker==6.1.3
+
+# Monitoring
+prometheus-client==0.19.0

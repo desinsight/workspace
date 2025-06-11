@@ -1,1 +1,162 @@
 version: '3.8'
+
+services:
+  # Git 중앙 저장소 (Gitea)
+  gitea:
+    image: gitea/gitea:latest
+    container_name: desinsight-gitea
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+      - "222:22"
+    volumes:
+      - /volume1/docker-data/gitea:/data
+      - /etc/timezone:/etc/timezone:ro
+      - /etc/localtime:/etc/localtime:ro
+    environment:
+      - USER_UID=1000
+      - USER_GID=1000
+      - GITEA__database__DB_TYPE=sqlite3
+      - GITEA__database__PATH=/data/gitea/gitea.db
+      - GITEA__server__DOMAIN=nas.local
+      - GITEA__server__SSH_DOMAIN=nas.local
+      - GITEA__server__ROOT_URL=http://nas.local:3000/
+
+  # PostgreSQL 데이터베이스
+  postgres:
+    image: postgres:15-alpine
+    container_name: snapcodex-postgres
+    restart: unless-stopped
+    ports:
+      - "5432:5432"
+    volumes:
+      - /volume1/docker-data/postgres:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_DB=snapcodex
+      - POSTGRES_USER=snapcodex
+      - POSTGRES_PASSWORD=secure_password123
+      - POSTGRES_INITDB_ARGS=--encoding=UTF-8 --locale=C
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U snapcodex"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Redis (캐싱)
+  redis:
+    image: redis:7-alpine
+    container_name: snapcodex-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - /volume1/docker-data/redis:/data
+    command: redis-server --appendonly yes
+
+  # Ollama (로컬 LLM)
+  ollama:
+    image: ollama/ollama:latest
+    container_name: desinsight-ollama
+    restart: unless-stopped
+    ports:
+      - "11434:11434"
+    volumes:
+      - /volume1/docker-data/ollama:/root/.ollama
+    environment:
+      - OLLAMA_HOST=0.0.0.0
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+    # GPU가 없는 경우 위의 deploy 섹션 제거
+
+  # ChromaDB (벡터 데이터베이스)
+  chromadb:
+    image: chromadb/chroma:latest
+    container_name: desinsight-chromadb
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    volumes:
+      - /volume1/docker-data/chromadb:/chroma/chroma
+    environment:
+      - CHROMA_HOST=0.0.0.0
+      - CHROMA_PORT=8000
+
+  # SnapCodex API 서버
+  snapcodex-api:
+    build: 
+      context: /volume1/workspace/snapcodex
+      dockerfile: Dockerfile
+    container_name: snapcodex-api
+    restart: unless-stopped
+    ports:
+      - "8001:8000"
+    volumes:
+      - /volume1/workspace:/app/workspace
+      - /volume1/docker-data/snapcodex-output:/app/output
+    environment:
+      - ENVIRONMENT=production
+      - POSTGRES_URL=postgresql://snapcodex:secure_password123@postgres:5432/snapcodex
+      - REDIS_URL=redis://redis:6379/0
+      - OLLAMA_BASE_URL=http://ollama:11434
+      - CHROMA_HOST=chromadb
+      - CHROMA_PORT=8000
+    depends_on:
+      - postgres
+      - redis
+      - ollama
+      - chromadb
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Nginx (리버스 프록시)
+  nginx:
+    image: nginx:alpine
+    container_name: desinsight-nginx
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - /volume1/docker-configs/nginx.conf:/etc/nginx/nginx.conf:ro
+      - /volume1/docker-data/nginx-logs:/var/log/nginx
+    depends_on:
+      - gitea
+      - snapcodex-api
+
+  # 파일 동기화 (Syncthing)
+  syncthing:
+    image: syncthing/syncthing:latest
+    container_name: desinsight-syncthing
+    restart: unless-stopped
+    ports:
+      - "8384:8384"    # Web UI
+      - "22000:22000"  # Sync protocol
+      - "21027:21027/udp"  # Discovery
+    volumes:
+      - /volume1/docker-data/syncthing:/var/syncthing/config
+      - /volume1/workspace:/var/syncthing/workspace
+    environment:
+      - PUID=1000
+      - PGID=1000
+
+volumes:
+  gitea_data:
+  postgres_data:
+  redis_data:
+  ollama_data:
+  chromadb_data:
+  syncthing_config:
+  nginx_logs:
+
+networks:
+  default:
+    name: desinsight-network
+    driver: bridge
