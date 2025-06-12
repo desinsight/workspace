@@ -16,6 +16,19 @@ connected_devices = {}
 device_last_seen = {}
 
 class EnhancedRealTimeHandler(http.server.SimpleHTTPRequestHandler):
+    def add_cors_headers(self):
+        """CORS 헤더 추가 (도메인 접속 지원)"""
+        self.send_header('Access-Control-Allow-Origin', '*')
+        self.send_header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS')
+        self.send_header('Access-Control-Allow-Headers', 'Content-Type')
+        self.send_header('Access-Control-Allow-Credentials', 'true')
+    
+    def do_OPTIONS(self):
+        """CORS preflight 요청 처리"""
+        self.send_response(200)
+        self.add_cors_headers()
+        self.end_headers()
+    
     def do_GET(self):
         if self.path == '/':
             self.send_dashboard_html()
@@ -92,6 +105,7 @@ class EnhancedRealTimeHandler(http.server.SimpleHTTPRequestHandler):
         """실시간 모니터링 대시보드 HTML"""
         self.send_response(200)
         self.send_header('Content-type', 'text/html; charset=utf-8')
+        self.add_cors_headers()
         self.end_headers()
         
         html = '''<!DOCTYPE html>
