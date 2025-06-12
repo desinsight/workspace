@@ -7,17 +7,10 @@ WORKDIR /app
 # 시스템 패키지 업데이트 및 필요한 도구 설치
 RUN apt-get update && apt-get install -y \
     curl \
-    ping \
-    net-tools \
-    procps \
-    htop \
+    iputils-ping \
     && rm -rf /var/lib/apt/lists/*
 
-# Python 의존성 파일 복사 및 설치
-COPY requirements_simple.txt .
-RUN pip install --no-cache-dir -r requirements_simple.txt
-
-# 추가 모니터링 라이브러리 설치
+# Python 의존성 설치
 RUN pip install --no-cache-dir psutil requests
 
 # 애플리케이션 파일 복사
@@ -26,22 +19,15 @@ COPY enhanced_realtime_server.py .
 COPY device_monitoring_agent.py .
 COPY integrated_dashboard_server.py .
 COPY simple_dashboard_server.py .
-COPY monitoring_dashboard.html .
 
 # 스크립트 실행 권한 부여
 RUN chmod +x *.py
 
 # 포트 노출
-EXPOSE 5001 5002 5003 5004 8080
+EXPOSE 5004
 
 # 환경 변수 설정
 ENV PYTHONUNBUFFERED=1
-ENV DASHBOARD_PORT=5004
-ENV MONITORING_INTERVAL=5
-
-# 헬스체크 추가
-HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
-    CMD curl -f http://localhost:${DASHBOARD_PORT}/api/devices || exit 1
 
 # 기본 실행 명령어 (향상된 실시간 모니터링 서버)
 CMD ["python3", "enhanced_realtime_server.py"]
@@ -49,5 +35,4 @@ CMD ["python3", "enhanced_realtime_server.py"]
 # 라벨 추가
 LABEL maintainer="Desinsight Team"
 LABEL version="1.0"
-LABEL description="Desinsight 분산 RAG 시스템 실시간 모니터링 대시보드"
-LABEL project="desinsight-monitoring" 
+LABEL description="Desinsight 분산 RAG 시스템 실시간 모니터링 대시보드" 
