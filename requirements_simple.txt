@@ -1,0 +1,56 @@
+# Desinsight Workspace - Simplified Requirements
+# Essential packages only for quick deployment
+
+# Core Framework
+fastapi==0.104.1
+uvicorn[standard]==0.24.0
+pydantic==2.5.0
+requests==2.31.0
+aiohttp==3.9.1
+
+# Basic AI/ML
+torch==2.1.0
+transformers==4.35.0
+sentence-transformers==2.2.2
+numpy==1.24.3
+
+# Vector Database
+chromadb==0.4.15
+
+# RAG Essentials
+langchain==0.0.335
+openai==1.3.5
+
+# Database
+sqlalchemy==2.0.23
+redis==5.0.1
+
+# Data Processing
+pandas==2.1.4
+python-dotenv==1.0.0
+pyyaml==6.0.1
+
+# Web Framework
+flask==3.0.0
+streamlit==1.28.1
+
+# Jupyter
+jupyter==1.0.0
+jupyterlab==4.0.8
+
+# Utilities
+click==8.1.7
+tqdm==4.66.1
+packaging>=20.0,<24.0
+
+# System
+psutil==5.9.6
+docker==6.1.3
+
+# Network
+httpx==0.25.0
+paramiko==3.3.1
+
+# Development
+black==23.9.1
+pytest==7.4.3 

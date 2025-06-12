@@ -1,0 +1,63 @@
+version: '3.8'
+
+services:
+  # 실시간 모니터링 대시보드
+  monitoring-dashboard:
+    build:
+      context: .
+      dockerfile: Dockerfile.monitoring
+    container_name: desinsight-monitoring-dashboard
+    ports:
+      - "5004:5004"  # 실시간 모니터링 대시보드
+      - "5003:5003"  # 통합 대시보드 (백업)
+      - "5002:5002"  # 간단 대시보드 (백업)
+    environment:
+      - DASHBOARD_PORT=5004
+      - MONITORING_INTERVAL=5
+      - PYTHONUNBUFFERED=1
+    volumes:
+      - monitoring_data:/app/data
+      - ./logs:/app/logs
+    networks:
+      - monitoring-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5004/api/devices"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    labels:
+      - "project=desinsight-monitoring"
+      - "service=dashboard"
+      - "version=1.0"
+
+  # 모니터링 에이전트 (로컬 테스트용)
+  monitoring-agent:
+    build:
+      context: .
+      dockerfile: Dockerfile.monitoring
+    container_name: desinsight-monitoring-agent
+    command: ["python3", "device_monitoring_agent.py", "--name", "Docker Agent", "--dashboard", "http://monitoring-dashboard:5004", "--interval", "10"]
+    environment:
+      - PYTHONUNBUFFERED=1
+    depends_on:
+      - monitoring-dashboard
+    networks:
+      - monitoring-network
+    restart: unless-stopped
+    labels:
+      - "project=desinsight-monitoring"
+      - "service=agent"
+      - "version=1.0"
+
+volumes:
+  monitoring_data:
+    driver: local
+
+networks:
+  monitoring-network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16 

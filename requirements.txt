@@ -94,7 +94,7 @@ click==8.1.8
 typer==0.16.0
 tqdm==4.67.1
 python-dateutil==2.9.0.post0
-packaging==25.0
+packaging>=20.0,<24.0
 
 # ============================
 # Security & Authentication

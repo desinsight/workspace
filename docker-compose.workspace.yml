@@ -1,0 +1,225 @@
+version: '3.8'
+
+services:
+  # =============================================================================
+  # Desinsight 분산 RAG 시스템 통합 워크스페이스
+  # 5개 디바이스 + 3개 NAS 아키텍처
+  # =============================================================================
+
+  desinsight-workspace:
+    build:
+      context: .
+      dockerfile: Dockerfile.workspace
+    image: desinsight/workspace:latest
+    container_name: desinsight-workspace
+    hostname: desinsight-workspace
+    restart: unless-stopped
+    
+    # 포트 매핑
+    ports:
+      - "5000:5000"     # 모니터링 대시보드
+      - "8000:8000"     # 중앙 제어기
+      - "8080:8080"     # UI 서버
+      - "8501:8501"     # Streamlit
+      - "7860:7860"     # Gradio
+      - "8888:8888"     # JupyterLab
+    
+    # 환경 변수
+    environment:
+      - TZ=Asia/Seoul
+      - PYTHONPATH=/workspace:/workspace/snapcodex:/workspace/rag-engine:/workspace/rag-system
+      - FLASK_ENV=production
+      - DEVELOPMENT_MODE=false
+      - OLLAMA_HOST=http://host.docker.internal:11434
+      - NAS_SNAPCODEX=192.168.219.175
+      - NAS_DESINSIGHT2=desinsight2.local
+      - NAS_OFFICE=desinsight.synology.me
+    
+    # 볼륨 마운트
+    volumes:
+      - workspace_logs:/workspace/logs
+      - workspace_shared:/workspace/shared-data
+      - workspace_configs:/workspace/docker-configs
+      - workspace_models:/workspace/shared-data/models
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      # NAS 마운트 (옵션)
+      # - /Volumes/snapcodex:/mnt/snapcodex:ro
+    
+    # 네트워크
+    networks:
+      - desinsight-network
+    
+    # 헬스체크
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5000/api/status"]
+      interval: 60s
+      timeout: 30s
+      retries: 3
+      start_period: 120s
+    
+    # 리소스 제한
+    deploy:
+      resources:
+        limits:
+          cpus: '4.0'
+          memory: 8G
+        reservations:
+          cpus: '2.0'
+          memory: 4G
+    
+    # 라벨
+    labels:
+      - "desinsight.service=workspace"
+      - "desinsight.version=4.0"
+      - "traefik.enable=true"
+      - "traefik.http.routers.workspace.rule=Host(`workspace.desinsight.local`)"
+      - "traefik.http.services.workspace.loadbalancer.server.port=5000"
+
+  # =============================================================================
+  # 개발 환경 (옵션)
+  # =============================================================================
+
+  desinsight-dev:
+    build:
+      context: .
+      dockerfile: Dockerfile.workspace
+    image: desinsight/workspace:latest
+    container_name: desinsight-dev
+    hostname: desinsight-dev
+    restart: "no"
+    profiles: ["development"]
+    
+    ports:
+      - "5001:5000"     # 개발용 대시보드
+      - "8001:8000"     # 개발용 제어기
+      - "8889:8888"     # 개발용 JupyterLab
+    
+    environment:
+      - TZ=Asia/Seoul
+      - PYTHONPATH=/workspace:/workspace/snapcodex:/workspace/rag-engine:/workspace/rag-system
+      - FLASK_ENV=development
+      - FLASK_DEBUG=1
+      - DEVELOPMENT_MODE=true
+    
+    volumes:
+      - .:/workspace
+      - workspace_dev_logs:/workspace/logs
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    
+    networks:
+      - desinsight-network
+    
+    labels:
+      - "desinsight.service=development"
+      - "desinsight.environment=dev"
+
+  # =============================================================================
+  # 지원 서비스 (독립 실행 가능)
+  # =============================================================================
+
+  postgres:
+    image: postgres:15-alpine
+    container_name: desinsight-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: desinsight
+      POSTGRES_USER: desinsight
+      POSTGRES_PASSWORD: desinsight2024
+      POSTGRES_INITDB_ARGS: "--encoding=UTF-8"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./docker/postgres/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    ports:
+      - "5432:5432"
+    networks:
+      - desinsight-network
+    labels:
+      - "desinsight.service=database"
+
+  redis:
+    image: redis:7-alpine
+    container_name: desinsight-redis
+    restart: unless-stopped
+    command: redis-server --appendonly yes --requirepass desinsight2024
+    volumes:
+      - redis_data:/data
+    ports:
+      - "6379:6379"
+    networks:
+      - desinsight-network
+    labels:
+      - "desinsight.service=cache"
+
+  chromadb:
+    image: chromadb/chroma:latest
+    container_name: desinsight-chromadb
+    restart: unless-stopped
+    environment:
+      - CHROMA_SERVER_HOST=0.0.0.0
+      - CHROMA_SERVER_HTTP_PORT=8000
+    volumes:
+      - chromadb_data:/chroma/chroma
+    ports:
+      - "8001:8000"
+    networks:
+      - desinsight-network
+    labels:
+      - "desinsight.service=vectordb"
+
+# =============================================================================
+# 볼륨 정의
+# =============================================================================
+
+volumes:
+  workspace_logs:
+    driver: local
+    labels:
+      - "desinsight.volume=logs"
+  
+  workspace_shared:
+    driver: local
+    labels:
+      - "desinsight.volume=shared-data"
+  
+  workspace_configs:
+    driver: local
+    labels:
+      - "desinsight.volume=configs"
+  
+  workspace_models:
+    driver: local
+    labels:
+      - "desinsight.volume=models"
+  
+  workspace_dev_logs:
+    driver: local
+    labels:
+      - "desinsight.volume=dev-logs"
+  
+  postgres_data:
+    driver: local
+    labels:
+      - "desinsight.volume=postgres"
+  
+  redis_data:
+    driver: local
+    labels:
+      - "desinsight.volume=redis"
+  
+  chromadb_data:
+    driver: local
+    labels:
+      - "desinsight.volume=chromadb"
+
+# =============================================================================
+# 네트워크 정의
+# =============================================================================
+
+networks:
+  desinsight-network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.25.0.0/16
+    labels:
+      - "desinsight.network=main" 

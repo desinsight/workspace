@@ -1,0 +1,46 @@
+# 버전 관리
+.git/
+.gitignore
+
+# 가상 환경
+venv/
+env/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# 로그 파일
+logs/
+*.log
+
+# IDE 설정
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# 시스템 파일
+.DS_Store
+Thumbs.db
+
+# 임시 파일
+*.tmp
+*.temp
+tmp/
+temp/
+
+# Docker 파일들 (중복 방지)
+dashboard/desinsight_monitoring_*.tar
+*.tar
+*.tar.gz
+
+# Node.js (필요시)
+node_modules/
+npm-debug.log
+
+# 큰 데이터 파일
+*.model
+*.bin
+models/
+data/
